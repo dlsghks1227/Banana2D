@@ -6,6 +6,8 @@
 Banana2D::Banana2D() :
 	m_hWnd(nullptr),
 	m_pDxgiFactory(nullptr),
+	m_pWICFactory(nullptr),
+	m_ppBitmap(nullptr),
 	m_pDirect2dFactory(nullptr),
 	m_pRenderTarget(nullptr),
 	m_pLightSlateGrayBrush(nullptr)
@@ -31,16 +33,16 @@ HRESULT Banana2D::Initialize()
 		* style
 		* CS_HREDRAW : 이동 또는 크기 조정으로 클라이언트 영역의 너비가 변경되면 전체 창을 다시 그립니다.
 		* CS_VREDRAW : 이동 또는 크기 조정으로 클라이언트 영역의 높이가 변경되면 전체 창을 다시 그립니다.
-		* 
+		*
 		* HINST_THISCOMPONENT
 		* https://devblogs.microsoft.com/oldnewthing/20041025-00/?p=37483
-		* 
+		*
 		* Window Class Styles
 		* https://docs.microsoft.com/en-us/windows/win32/winmsg/window-class-styles
-		* 
+		*
 		* WNDCLASSA
 		* https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassa
-		* 
+		*
 		*/
 		WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) };
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -103,23 +105,25 @@ HRESULT Banana2D::CreateDeviceIndependentResources()
 	HRESULT hr = S_OK;
 
 	/* Direct2D 리소스를 만드는 데 사용할 수 있는 Factory 개체를 생성
-	* 
+	*
 	* D2D1_FACTORY_TYPE_SINGLE_THREADED	: 싱글 스레드용
 	* D2D1_FACTORY_TYPE_MULTI_THREADED	: 멀티 스레드용
-	* 
+	*
 	* D2D1CreateFactory
 	* https://docs.microsoft.com/ko-kr/windows/win32/api/d2d1/nf-d2d1-d2d1createfactory
-	* 
+	*
 	* D2D1_FACTORY_TYPE
 	* https://docs.microsoft.com/en-us/windows/win32/api/d2d1/ne-d2d1-d2d1_factory_type
-	* 
+	*
 	*/
 	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
 
 	// https://docs.microsoft.com/ko-kr/cpp/cpp/uuidof-operator?view=vs-2019
 	// https://m.blog.naver.com/PostView.nhn?blogId=ljc8808&logNo=220456743162&proxyReferer=https:%2F%2Fwww.google.com%2F
-	hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pDxgiFactory);
-	
+	//hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pDxgiFactory);
+
+	hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pWICFactory));
+
 	return hr;
 }
 
@@ -150,6 +154,11 @@ HRESULT Banana2D::CreateDeviceResources()
 			hr = m_pRenderTarget->CreateSolidColorBrush(
 				D2D1::ColorF(D2D1::ColorF::LightSlateGray),
 				&m_pLightSlateGrayBrush);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = LoadBitmapFromFile(L"Image/default.png", 200, 200);
 		}
 	}
 	return hr;
@@ -201,12 +210,16 @@ HRESULT Banana2D::OnRender()
 				m_pLightSlateGrayBrush, 0.5f);
 		}
 
-		for (int x = 0; x < width; x += 10)
-		{
-			m_pRenderTarget->DrawLine(
-				D2D1::Point2F(sin(static_cast<FLOAT>(x) * 2.0f * 3.14f) * 10.0f, 10.0f),
-				D2D1::Point2F(rtSize.width, 10.0f),
-				m_pLightSlateGrayBrush, 2.0f);
+		if (m_ppBitmap != nullptr) {
+			D2D1_SIZE_F size = m_ppBitmap->GetSize();
+
+
+			m_pRenderTarget->DrawBitmap(m_ppBitmap, D2D1::RectF(
+				1.0f,
+				1.0f,
+				1.0f + size.width,
+				1.0f + size.height
+			));
 		}
 
 		hr = m_pRenderTarget->EndDraw();
@@ -225,6 +238,56 @@ void Banana2D::OnResize(UINT width, UINT height)
 {
 	if (m_pRenderTarget)
 		m_pRenderTarget->Resize(D2D1::SizeU(width, height));
+}
+
+HRESULT Banana2D::LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight)
+{
+	IWICBitmapDecoder* pDecoder = nullptr;
+	IWICBitmapFrameDecode* pSource = nullptr;
+	IWICStream* pStream = nullptr;
+	IWICFormatConverter* pConverter = nullptr;
+	IWICBitmapScaler* pScaler = nullptr;
+
+	HRESULT hr = S_OK;
+
+	hr = m_pWICFactory->CreateDecoderFromFilename(uri, nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &pDecoder);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pDecoder->GetFrame(0, &pSource);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pWICFactory->CreateFormatConverter(&pConverter);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pConverter->Initialize(
+			pSource,
+			GUID_WICPixelFormat32bppPBGRA,
+			WICBitmapDitherTypeNone,
+			nullptr,
+			0.f,
+			WICBitmapPaletteTypeCustom);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pRenderTarget->CreateBitmapFromWicBitmap(
+			pConverter,
+			nullptr,
+			&m_ppBitmap);
+	}
+
+	SafeRelease(&pDecoder);
+	SafeRelease(&pSource);
+	SafeRelease(&pStream);
+	SafeRelease(&pConverter);
+	SafeRelease(&pScaler);
+
+	return hr;
 }
 
 
@@ -255,7 +318,7 @@ LRESULT Banana2D::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	else
 	{
 		Banana2D* pD2D = reinterpret_cast<Banana2D*>(static_cast<LONG_PTR>(
-			::GetWindowLongW(hWnd, GWLP_USERDATA)));
+			::GetWindowLongPtrW(hWnd, GWLP_USERDATA)));
 
 		bool wasHandled = false;
 

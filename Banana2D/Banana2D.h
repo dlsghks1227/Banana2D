@@ -5,6 +5,10 @@ class Banana2D
 
 	IDXGIFactory*			m_pDxgiFactory;
 
+	IWICImagingFactory*		m_pWICFactory;
+
+	ID2D1Bitmap*			m_ppBitmap;
+
 	ID2D1Factory*			m_pDirect2dFactory;
 	ID2D1HwndRenderTarget*	m_pRenderTarget;
 	ID2D1SolidColorBrush*	m_pLightSlateGrayBrush;
@@ -26,7 +30,9 @@ private:
 
 	HRESULT		OnRender();
 
-	void OnResize(UINT width, UINT height);
+	void		OnResize(UINT width, UINT height);
+
+	HRESULT		LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight);
 
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };
