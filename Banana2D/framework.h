@@ -10,23 +10,83 @@
 #include <windows.h>
 #include <wincodec.h>
 
-// C 런타임 헤더 파일입니다.
-#include <stdlib.h>
-#include <malloc.h>
-#include <memory.h>
-#include <tchar.h>
+// DirectX apps don't need GDI
+#define NODRAWTEXT
+#define NOGDI
+#define NOBITMAP
 
+// C 런타임 헤더 파일입니다.
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <cwchar>
+#include <exception>
+#include <iterator>
+#include <memory>
+#include <stdexcept>
+
+#include <wrl.h>
 #include <iostream>
 
 // Direct2D 헤더 파일입니다.
-#include <d2d1.h>
-#include <d3d11.h>
-#include <dxgi.h>
+#if defined(NTDDI_WIN10_RS2)
+#include <dxgi1_6.h>
+#else
+#include <dxgi1_5.h>
+#endif
+#include <d2d1_3.h>
+#include <d3d11_4.h>
 #include <dwrite.h>
 
+#include <DirectXMath.h>
+#include <DirectXColors.h>
+
 #pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
+#ifndef Assert
+#if defined( DEBUG ) || defined( _DEBUG )
+#include <dxgidebug.h>
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+#define Assert(b) do {if (!(b)) { OutputDebugStringA("Assert: " #b "\n");}} while(0)
+#else
+#define Assert(b)
+#endif // DEBUG || _DEBUG
+#endif
+
+namespace DX
+{
+	// https://github.com/Microsoft/DirectXTK/wiki/ThrowIfFailed
+	// Helper class for COM exceptions
+
+	class com_exception : public std::exception
+	{
+	public:
+		com_exception(HRESULT hr) : result(hr) {}
+
+		const char* what() const override
+		{
+			static char s_str[64] = {};
+			sprintf_s(s_str, "Failure with HRESULT of %08X",
+				static_cast<unsigned int>(result));
+			return s_str;
+		}
+
+	private:
+		HRESULT result;
+	};
+
+	// Helper utility converts D3D API failures into exceptions.
+	inline void ThrowIfFailed(HRESULT hr)
+	{
+		if (FAILED(hr))
+		{
+			throw com_exception(hr);
+		}
+	}
+}
 // 인터페이스 해제
 template<class Interface>
 inline UINT32 SafeRelease(Interface** ppInterfaceToRelease)
@@ -51,14 +111,6 @@ inline UINT32 SafeRelease(Interface** ppInterfaceToRelease)
 	return ret;
 }
 
-#ifndef Assert
-#if defined( DEBUG ) || defined( _DEBUG )
-#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
-#define Assert(b) do {if (!(b)) { OutputDebugStringA("Assert: " #b "\n");}} while(0)
-#else
-#define Assert(b)
-#endif // DEBUG || _DEBUG
-#endif
 
 // 모듈 기본 주소
 #ifndef HINST_THISCOMPONENT

@@ -5,10 +5,10 @@
 
 Banana2D::Banana2D() :
 	m_hWnd(nullptr),
-	m_pDxgiFactory(nullptr),
+	m_pFeatureLevels(),
 	m_pWICFactory(nullptr),
 	m_ppBitmap(nullptr),
-	m_pDirect2dFactory(nullptr),
+	m_pD2DFactory(nullptr),
 	m_pRenderTarget(nullptr),
 	m_pLightSlateGrayBrush(nullptr)
 {
@@ -16,7 +16,7 @@ Banana2D::Banana2D() :
 
 Banana2D::~Banana2D()
 {
-	SafeRelease(&m_pDirect2dFactory);
+	SafeRelease(&m_pD2DFactory);
 	SafeRelease(&m_pRenderTarget);
 	SafeRelease(&m_pLightSlateGrayBrush);
 }
@@ -97,6 +97,10 @@ void Banana2D::RunMessageLoop()
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		else
+		{
+
+		}
 	}
 }
 
@@ -116,11 +120,119 @@ HRESULT Banana2D::CreateDeviceIndependentResources()
 	* https://docs.microsoft.com/en-us/windows/win32/api/d2d1/ne-d2d1-d2d1_factory_type
 	*
 	*/
-	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
 
 	// https://docs.microsoft.com/ko-kr/cpp/cpp/uuidof-operator?view=vs-2019
 	// https://m.blog.naver.com/PostView.nhn?blogId=ljc8808&logNo=220456743162&proxyReferer=https:%2F%2Fwww.google.com%2F
-	//hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pDxgiFactory);
+	// hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pDxgiFactory);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	/* --------------------------------------------------
+	* 
+	* 장치를 만드는 데 사용되는 매개 변수
+	* 
+	* https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_create_device_flag
+	* 
+	* D3D11_CREATE_DEVICE_BGRA_SUPPORT: BGRA 형식을 지원하는 장치를 만듭니다.
+	* 
+	* API 기본값과 다른 색상 채널 순서를 가진 표면에 대한 지원을 추가합니다.
+	* Direct3D 리소스와 Direct2D 상호 운용성을 위해 필요합니다.
+	* 
+	* -------------------------------------------------- */
+	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+	/* --------------------------------------------------
+	* 
+	* 앱이 지원하는 DirectX 하드웨어 기능 수준 집합을 정의합니다.
+	* 
+	* https://docs.microsoft.com/en-us/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level
+	* 
+	* 순서대로 입력하는 것이 중요합니다.
+	* 앱의 최소 필수 기능 수준을 선언하지 않으면 모든 앱은 9.1을 지원하는 것으로 간주합니다.
+	* 
+	* -------------------------------------------------- */
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+		D3D_FEATURE_LEVEL_9_1,
+		D3D_FEATURE_LEVEL_9_2,
+		D3D_FEATURE_LEVEL_9_3
+	};
+
+	// DX11 API 디바이스 오브젝트 생성 및 해당 디바이스를 가져옵니다.
+	Microsoft::WRL::ComPtr<ID3D11Device> device;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
+	DX::ThrowIfFailed(
+		D3D11CreateDevice(
+			nullptr,
+			D3D_DRIVER_TYPE_HARDWARE,
+			0,
+			creationFlags,
+			featureLevels,
+			ARRAYSIZE(featureLevels),
+			D3D11_SDK_VERSION,
+			&device,
+			&m_pFeatureLevels,
+			&context
+		)
+	);
+
+	// Direct3D11 장치의 기본 DXGI 장치를 가져옵니다.
+	Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
+	DX::ThrowIfFailed(
+		device.As(&dxgiDevice)
+	);
+
+	// 2D 렌더링을 위한 Direct2D 디바이스를 얻습니다.
+	DX::ThrowIfFailed(
+		m_pD2DFactory->CreateDevice(dxgiDevice.Get(), &m_pD2DDevice)
+	);
+
+
+	// Direct2D 장치의 해당 장치 컨텍스트 개체를 가져옵니다.
+	DX::ThrowIfFailed(
+		m_pD2DDevice->CreateDeviceContext(
+			D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+			&m_pD2DDeviceContext
+		)
+	);
+
+
+	// DXGI_SWAP_CHAIN_DESC1 구조를 할당하고 스왑 체인에 대한 설정을 정의합니다.
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
+	swapChainDesc.Width = 0;
+	swapChainDesc.Height = 0;		// 사이즈 자동 설정
+	swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	swapChainDesc.Stereo = false;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.BufferCount = 2;
+	swapChainDesc.Scaling = DXGI_SCALING_NONE;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	swapChainDesc.Flags = 0;
+
+	// 디바이스가 실행되는 물리적 어댑터(GPU 또는 카드)를 식별합니다.
+	// Direct3D 장치 및 DXGI 장치가 실행중인 어댑터를 가져와서 연결된 IDXGIFactory 개체를 가져옵니다.
+	Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
+	DX::ThrowIfFailed(
+		dxgiDevice->GetAdapter(&dxgiAdapter)
+	);
+
+	Microsoft::WRL::ComPtr<IDXGIFactory2> dxgiFactory;
+	DX::ThrowIfFailed(
+		dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory))
+	);
+
+
+
 
 	hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pWICFactory));
 
@@ -144,7 +256,7 @@ HRESULT Banana2D::CreateDeviceResources()
 		// &renderTargetProperties		: 렌더타겟의 정보
 		// &hwndRenderTargetProperties	: 윈도우 렌더타겟의 정보(윈도우 핸들, 윈도우 크기 등의 값)
 		// **hwndRenderTarget			: 결과를 저장할 포인터
-		hr = m_pDirect2dFactory->CreateHwndRenderTarget(
+		hr = m_pD2DFactory->CreateHwndRenderTarget(
 			D2D1::RenderTargetProperties(),
 			D2D1::HwndRenderTargetProperties(m_hWnd, size),
 			&m_pRenderTarget);
