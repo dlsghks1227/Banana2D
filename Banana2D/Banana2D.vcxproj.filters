@@ -30,6 +30,9 @@
     <ClInclude Include="Banana2D.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DeviceResources.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Banana2D.rc">
@@ -49,6 +52,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Banana2D.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceResources.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

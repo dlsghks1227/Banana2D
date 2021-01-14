@@ -36,6 +36,7 @@
 #include <dxgi1_5.h>
 #endif
 #include <d2d1_3.h>
+#include <d2d1_1helper.h>
 #include <d3d11_4.h>
 #include <dwrite.h>
 
