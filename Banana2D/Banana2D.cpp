@@ -1,367 +1,113 @@
 #include "framework.h"
-
 #include "Banana2D.h"
 
 
-Banana2D::Banana2D() :
-	m_hWnd(nullptr),
-	m_pDxgiFactory(nullptr),
-	m_pWICFactory(nullptr),
-	m_ppBitmap(nullptr),
-	m_pDirect2dFactory(nullptr),
-	m_pRenderTarget(nullptr),
-	m_pLightSlateGrayBrush(nullptr)
+Banana2D::Banana2D() noexcept(false)
 {
+	m_deviceResources = std::make_unique<DX::DeviceResources>();
+	m_deviceResources->RegisterDeviceNotify(this);
 }
 
-Banana2D::~Banana2D()
+void Banana2D::Initialize(HWND window, int width, int height)
 {
-	SafeRelease(&m_pDirect2dFactory);
-	SafeRelease(&m_pRenderTarget);
-	SafeRelease(&m_pLightSlateGrayBrush);
+	m_deviceResources->SetWindow(window, width, height);
+
+	m_deviceResources->CreateDeviceResources();
+	CreateDeviceDependentResources();
+
+	m_deviceResources->CreateWindowSizeDependentResources();
+	CreateWindowSizeDependentResources();
 }
 
-HRESULT Banana2D::Initialize()
+void Banana2D::Tick()
 {
-	HRESULT	hr = S_OK;
-
-	hr = CreateDeviceIndependentResources();
-
-	if (SUCCEEDED(hr))
-	{
-		/*
-		* style
-		* CS_HREDRAW : 이동 또는 크기 조정으로 클라이언트 영역의 너비가 변경되면 전체 창을 다시 그립니다.
-		* CS_VREDRAW : 이동 또는 크기 조정으로 클라이언트 영역의 높이가 변경되면 전체 창을 다시 그립니다.
-		*
-		* HINST_THISCOMPONENT
-		* https://devblogs.microsoft.com/oldnewthing/20041025-00/?p=37483
-		*
-		* Window Class Styles
-		* https://docs.microsoft.com/en-us/windows/win32/winmsg/window-class-styles
-		*
-		* WNDCLASSA
-		* https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassa
-		*
-		*/
-		WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) };
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Banana2D::WndProc;
-		wcex.cbClsExtra = 0;
-		wcex.cbWndExtra = sizeof(LONG_PTR);
-		wcex.hInstance = HINST_THISCOMPONENT;
-		wcex.hCursor = LoadCursor(0, IDC_ARROW);
-		wcex.hbrBackground = nullptr;
-		wcex.lpszMenuName = nullptr;
-		wcex.lpszClassName = L"Banana";
-
-		/* 어플리케이션 로컬 클래스 등록
-		* Using Window Classes
-		* https://docs.microsoft.com/en-us/windows/win32/winmsg/using-window-classes
-		*/
-		RegisterClassEx(&wcex);
-
-		m_hWnd = CreateWindowEx(
-			0,
-			wcex.lpszClassName,
-			L"BananaDirect2D",
-			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			nullptr,
-			nullptr,
-			HINST_THISCOMPONENT,
-			this);
-
-		hr = m_hWnd ? S_OK : E_FAIL;
-
-		if (SUCCEEDED(hr))
+	m_timer.Tick([&]()
 		{
-			ShowWindow(m_hWnd, SW_SHOWNORMAL);
-			UpdateWindow(m_hWnd);
-		}
-	}
-	return hr;
+			Update(m_timer);
+		});
+
+	Render();
 }
 
-void Banana2D::RunMessageLoop()
+void Banana2D::OnDeviceLost()
 {
-	MSG msg = { 0 };
 
-	while (msg.message != WM_QUIT)
-	{
-		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
 }
 
-HRESULT Banana2D::CreateDeviceIndependentResources()
+void Banana2D::OnDeviceRestored()
 {
-	HRESULT hr = S_OK;
-
-	/* Direct2D 리소스를 만드는 데 사용할 수 있는 Factory 개체를 생성
-	*
-	* D2D1_FACTORY_TYPE_SINGLE_THREADED	: 싱글 스레드용
-	* D2D1_FACTORY_TYPE_MULTI_THREADED	: 멀티 스레드용
-	*
-	* D2D1CreateFactory
-	* https://docs.microsoft.com/ko-kr/windows/win32/api/d2d1/nf-d2d1-d2d1createfactory
-	*
-	* D2D1_FACTORY_TYPE
-	* https://docs.microsoft.com/en-us/windows/win32/api/d2d1/ne-d2d1-d2d1_factory_type
-	*
-	*/
-	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
-
-	// https://docs.microsoft.com/ko-kr/cpp/cpp/uuidof-operator?view=vs-2019
-	// https://m.blog.naver.com/PostView.nhn?blogId=ljc8808&logNo=220456743162&proxyReferer=https:%2F%2Fwww.google.com%2F
-	//hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pDxgiFactory);
-
-	hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pWICFactory));
-
-	return hr;
 }
 
-HRESULT Banana2D::CreateDeviceResources()
+void Banana2D::OnWindowMoved()
 {
-	HRESULT hr = S_OK;
-
-	if (!m_pRenderTarget)
-	{
-		RECT rc;
-		GetClientRect(m_hWnd, &rc);
-
-		D2D1_SIZE_U size = D2D1::SizeU(
-			rc.right - rc.left,
-			rc.bottom - rc.top
-		);
-
-		// &renderTargetProperties		: 렌더타겟의 정보
-		// &hwndRenderTargetProperties	: 윈도우 렌더타겟의 정보(윈도우 핸들, 윈도우 크기 등의 값)
-		// **hwndRenderTarget			: 결과를 저장할 포인터
-		hr = m_pDirect2dFactory->CreateHwndRenderTarget(
-			D2D1::RenderTargetProperties(),
-			D2D1::HwndRenderTargetProperties(m_hWnd, size),
-			&m_pRenderTarget);
-
-		if (SUCCEEDED(hr))
-		{
-			hr = m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::LightSlateGray),
-				&m_pLightSlateGrayBrush);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = LoadBitmapFromFile(L"Image/default.png", 200, 200);
-		}
-	}
-	return hr;
+	auto r = m_deviceResources->GetOutputSize();
+	m_deviceResources->WindowSizeChanged(r.right, r.bottom);
 }
 
-void Banana2D::DiscardDeviceResources()
+void Banana2D::OnWindowSizeChanged(int width, int height)
 {
-	SafeRelease(&m_pRenderTarget);
-	SafeRelease(&m_pLightSlateGrayBrush);
+	if (!m_deviceResources->WindowSizeChanged(width, height))
+		return;
+
+	CreateDeviceDependentResources();
 }
 
-HRESULT Banana2D::OnRender()
+void Banana2D::GetDefaultSize(int& width, int& height) const noexcept
 {
-	HRESULT hr = S_OK;
-
-	hr = CreateDeviceResources();
-
-	if (SUCCEEDED(hr))
-	{
-		// BeginDraw 메서드를 호출하여 그리기 시작
-		m_pRenderTarget->BeginDraw();
-
-		// 단위 행렬로 변환
-		m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-
-		// 창 초기화
-		m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
-
-		// 도면의 크기를 검색
-		D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
-
-		// DrawLine 메서드를 이용하여 그리드 그리기
-		int width = static_cast<int>(rtSize.width);
-		int height = static_cast<int>(rtSize.height);
-
-		for (int x = 0; x < width; x += 10)
-		{
-			m_pRenderTarget->DrawLine(
-				D2D1::Point2F(static_cast<FLOAT>(x), 0.0f),
-				D2D1::Point2F(static_cast<FLOAT>(x), rtSize.height),
-				m_pLightSlateGrayBrush, 0.5f);
-		}
-
-		for (int y = 0; y < height; y += 10)
-		{
-			m_pRenderTarget->DrawLine(
-				D2D1::Point2F(0.0f, static_cast<FLOAT>(y)),
-				D2D1::Point2F(rtSize.width, static_cast<FLOAT>(y)),
-				m_pLightSlateGrayBrush, 0.5f);
-		}
-
-		if (m_ppBitmap != nullptr) {
-			D2D1_SIZE_F size = m_ppBitmap->GetSize();
-
-
-			m_pRenderTarget->DrawBitmap(m_ppBitmap, D2D1::RectF(
-				1.0f,
-				1.0f,
-				1.0f + size.width,
-				1.0f + size.height
-			));
-		}
-
-		hr = m_pRenderTarget->EndDraw();
-	}
-
-	if (hr == D2DERR_RECREATE_TARGET)
-	{
-		hr = S_OK;
-		DiscardDeviceResources();
-	}
-
-	return hr;
+	width = 1280;
+	height = 960;
 }
 
-void Banana2D::OnResize(UINT width, UINT height)
+void Banana2D::Update(DX::StepTimer const& timer)
 {
-	if (m_pRenderTarget)
-		m_pRenderTarget->Resize(D2D1::SizeU(width, height));
+	float elapsedTime = float(timer.GetElapsedSeconds());
 }
 
-HRESULT Banana2D::LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight)
+void Banana2D::Render()
 {
-	IWICBitmapDecoder* pDecoder = nullptr;
-	IWICBitmapFrameDecode* pSource = nullptr;
-	IWICStream* pStream = nullptr;
-	IWICFormatConverter* pConverter = nullptr;
-	IWICBitmapScaler* pScaler = nullptr;
-
-	HRESULT hr = S_OK;
-
-	hr = m_pWICFactory->CreateDecoderFromFilename(uri, nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &pDecoder);
-
-	if (SUCCEEDED(hr))
+	if (m_timer.GetFrameCount() == 0)
 	{
-		hr = pDecoder->GetFrame(0, &pSource);
+		return;
 	}
 
-	if (SUCCEEDED(hr))
-	{
-		hr = m_pWICFactory->CreateFormatConverter(&pConverter);
-	}
+	Clear();
 
-	if (SUCCEEDED(hr))
-	{
-		hr = pConverter->Initialize(
-			pSource,
-			GUID_WICPixelFormat32bppPBGRA,
-			WICBitmapDitherTypeNone,
-			nullptr,
-			0.f,
-			WICBitmapPaletteTypeCustom);
-	}
+	auto context = m_deviceResources->GetD2DDeviceContext();
 
-	if (SUCCEEDED(hr))
-	{
-		hr = m_pRenderTarget->CreateBitmapFromWicBitmap(
-			pConverter,
-			nullptr,
-			&m_ppBitmap);
-	}
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pBlackBrush;
+	DX::ThrowIfFailed(
+		context->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF::White),
+			&pBlackBrush
+		)
+	);
 
-	SafeRelease(&pDecoder);
-	SafeRelease(&pSource);
-	SafeRelease(&pStream);
-	SafeRelease(&pConverter);
-	SafeRelease(&pScaler);
+	context->BeginDraw();
 
-	return hr;
+	context->DrawRectangle(
+		D2D1::RectF(
+			100.0f,
+			100.0f,
+			200.0f,
+			200.0f),
+		pBlackBrush.Get(), 2.0f);
+
+	DX::ThrowIfFailed(context->EndDraw());
+
+	m_deviceResources->Present();
 }
 
-
-/// <summary>
-/// 창으로 전송 된 메시지를 처리하는 Application-define function
-/// </summary>
-/// <param name="hWnd"></param>
-/// <param name="message"></param>
-/// <param name="wParam"></param>
-/// <param name="lParam"></param>
-/// <returns></returns>
-/// 
-/// WindowProc callback function
-/// 'https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms633573(v=vs.85)'
-LRESULT Banana2D::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void Banana2D::Clear()
 {
-	LRESULT result = 0;
+	auto renderTarget = m_deviceResources->GetRenderTarget();
+}
 
-	if (message == WM_CREATE)
-	{
-		LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
-		Banana2D* pD2D = (Banana2D*)pcs->lpCreateParams;
+void Banana2D::CreateDeviceDependentResources()
+{
 
-		// reinterpret_cast : 임의의 포인터 타입끼리 변환을 허용하는 캐스트 연산자
-		::SetWindowLongPtrW(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pD2D));
-		result = 1;
-	}
-	else
-	{
-		Banana2D* pD2D = reinterpret_cast<Banana2D*>(static_cast<LONG_PTR>(
-			::GetWindowLongPtrW(hWnd, GWLP_USERDATA)));
+}
 
-		bool wasHandled = false;
+void Banana2D::CreateWindowSizeDependentResources()
+{
 
-		if (pD2D)
-		{
-			switch (message)
-			{
-			case WM_SIZE:
-			{
-				UINT width = LOWORD(lParam);
-				UINT height = HIWORD(lParam);
-				pD2D->OnResize(width, height);
-			}
-			result = 0;
-			wasHandled = true;
-			break;
-			case WM_DISPLAYCHANGE:
-			{
-				InvalidateRect(hWnd, nullptr, FALSE);
-			}
-			result = 0;
-			wasHandled = true;
-			break;
-			case WM_PAINT:
-			{
-				pD2D->OnRender();
-				ValidateRect(hWnd, nullptr);
-			}
-			result = 0;
-			wasHandled = true;
-			break;
-			case WM_DESTROY:
-			{
-				PostQuitMessage(0);
-			}
-			result = 1;
-			wasHandled = true;
-			break;
-			}
-		}
-
-		if (!wasHandled)
-			result = DefWindowProc(hWnd, message, wParam, lParam);
-	}
-	return result;
 }

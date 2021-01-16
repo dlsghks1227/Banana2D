@@ -1,39 +1,47 @@
 #pragma once
-class Banana2D
+#include "DeviceResources.h"
+#include "StepTimer.h"
+
+class Banana2D final : public DX::IDeviceNotify
 {
-	HWND					m_hWnd;
-
-	IDXGIFactory*			m_pDxgiFactory;
-
-	IWICImagingFactory*		m_pWICFactory;
-
-	ID2D1Bitmap*			m_ppBitmap;
-
-	ID2D1Factory*			m_pDirect2dFactory;
-	ID2D1HwndRenderTarget*	m_pRenderTarget;
-	ID2D1SolidColorBrush*	m_pLightSlateGrayBrush;
-
 public:
-	Banana2D();
-	~Banana2D();
+	Banana2D() noexcept(false);
+	~Banana2D() = default;
 
-	HRESULT		Initialize();
+	// delete / default 키워드
+	// https://blankspace-dev.tistory.com/350
+	Banana2D(Banana2D&&) = default;
+	Banana2D& operator = (Banana2D&&) = default;
 
-	void		RunMessageLoop();
+	Banana2D(Banana2D const&) = delete;
+	Banana2D& operator = (Banana2D const&) = delete;
+
+	void Initialize(HWND window, int width, int height);
+
+	void Tick();
+
+	void OnDeviceLost() override;
+	void OnDeviceRestored() override;
+
+	// Message
+	void OnActvated();
+	void OnWindowMoved();
+	void OnWindowSizeChanged(int width, int height);
+
+	void GetDefaultSize(int& width, int& height) const noexcept;
 
 private:
-	HRESULT		CreateDeviceIndependentResources();
+	void Update(DX::StepTimer const& timer);
+	void Render();
 
-	HRESULT		CreateDeviceResources();
+	void Clear();
 
-	void		DiscardDeviceResources();
+	void CreateDeviceDependentResources();
+	void CreateWindowSizeDependentResources();
 
-	HRESULT		OnRender();
+	// 디바이스 리소스
+	std::unique_ptr<DX::DeviceResources>		m_deviceResources;
 
-	void		OnResize(UINT width, UINT height);
-
-	HRESULT		LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight);
-
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	DX::StepTimer								m_timer;
 };
 
