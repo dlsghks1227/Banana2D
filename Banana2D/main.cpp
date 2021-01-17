@@ -22,7 +22,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	if (!DirectX::XMVerifyCPUSupport())
 	{
+#ifdef _DEBUG
 		std::cout << "Cpu Not Supported\n";
+#endif
 		return 1;
 	}
 
@@ -150,6 +152,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
+	case WM_ACTIVATEAPP:
+		if (game)
+		{
+			if (wParam)
+			{
+				game->OnActivated();
+			}
+			else
+			{
+				game->OnDeactivated();
+			}
+		}
+		break;
+
 	case WM_SIZE:
 		if (wParam == SIZE_MINIMIZED)
 		{
@@ -158,7 +174,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				s_minimized = true;
 				if (!s_in_suspend && game)
 				{
-
+					game->OnSuspending();
 				}
 				s_in_suspend = true;
 			}
@@ -168,7 +184,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			s_minimized = false;
 			if (s_in_suspend && game)
 			{
-
+				game->OnResuming();
 			}
 			s_in_suspend = false;
 		}
@@ -240,5 +256,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MENUCHAR:
 		return MAKELRESULT(0, MNC_CLOSE);
 	}
+
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }

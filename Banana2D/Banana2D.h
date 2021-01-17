@@ -24,7 +24,11 @@ public:
 	void OnDeviceRestored() override;
 
 	// Message
-	void OnActvated();
+	void OnActivated();
+	void OnDeactivated();
+	void OnSuspending();
+	void OnResuming();
+
 	void OnWindowMoved();
 	void OnWindowSizeChanged(int width, int height);
 
@@ -34,14 +38,20 @@ private:
 	void Update(DX::StepTimer const& timer);
 	void Render();
 
-	void Clear();
-
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
 
 	// 디바이스 리소스
-	std::unique_ptr<DX::DeviceResources>		m_deviceResources;
+	std::unique_ptr<DX::DeviceResources>			m_deviceResources;
 
-	DX::StepTimer								m_timer;
+	// Grid
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_GridColor;
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_TextColor;
+
+	DX::StepTimer		m_timer;
+
+	std::wstringstream	m_frameInfoText;
+	D2D1_POINT_2F		m_pos;
+
 };
 

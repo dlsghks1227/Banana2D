@@ -31,6 +31,7 @@
 
 #include <wrl.h>
 #include <iostream>
+#include <sstream>
 
 // Direct2D 헤더 파일입니다.
 #if defined(NTDDI_WIN10_RS2)
@@ -46,9 +47,10 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
+#pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dwrite.lib")
 
 #ifndef Assert
 #if defined( DEBUG ) || defined( _DEBUG )

@@ -69,15 +69,14 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
 	// 이전 창 크기 특정 컨텍스트 초기화
 	ID3D11RenderTargetView* nullViews[] = { nullptr };
-	m_renderTarget.Reset();
 	m_d2dTargetBitmap.Reset();
+	m_textFormat.Reset();
 
 	m_d2dDeviceContext->SetTarget(nullptr);
-
 	m_d2dDeviceContext->Flush();
 
-	const UINT backBufferWidth	= std::max<UINT>(static_cast<UINT>(m_outputSize.right - m_outputSize.left), 1u);
-	const UINT backBufferHeight	= std::max<UINT>(static_cast<UINT>(m_outputSize.bottom - m_outputSize.top), 1u);
+	const UINT backBufferWidth = std::max<UINT>(static_cast<UINT>(m_outputSize.right - m_outputSize.left), 1u);
+	const UINT backBufferHeight = std::max<UINT>(static_cast<UINT>(m_outputSize.bottom - m_outputSize.top), 1u);
 
 	if (m_dxgiSwapChain)
 	{
@@ -133,7 +132,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		DX::ThrowIfFailed(m_dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER));
 	}
 
-	DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(m_renderTarget.ReleaseAndGetAddressOf())));
+	//DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(m_renderTarget.ReleaseAndGetAddressOf())));
 
 	Microsoft::WRL::ComPtr<IDXGISurface> surface;
 	DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(surface.ReleaseAndGetAddressOf())));
@@ -155,6 +154,38 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
 	// Direct2D 디바이스 컨텍스트가 렌더링 할 비트맵 설정
 	m_d2dDeviceContext->SetTarget(m_d2dTargetBitmap.Get());
+
+	// DirectWrite 포맷 설정
+	DX::ThrowIfFailed(m_dwFactory->CreateTextFormat(
+		L"Arial",
+		nullptr,
+		DWRITE_FONT_WEIGHT_REGULAR,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		21.0f,
+		L"en-us",
+		m_textFormat.ReleaseAndGetAddressOf()
+	));
+
+	// IDXGISwapChain에서 surface를 가져와 표면 RenderTarget을 생성합니다.
+	//Microsoft::WRL::ComPtr<IDXGISurface> surface;
+	//DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(surface.ReleaseAndGetAddressOf())));
+
+
+	//D2D1_RENDER_TARGET_PROPERTIES props =
+	//	D2D1::RenderTargetProperties(
+	//		D2D1_RENDER_TARGET_TYPE_DEFAULT,
+	//		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+	//		0, 0
+	//	);
+
+	//DX::ThrowIfFailed(m_d2dFactory->CreateDxgiSurfaceRenderTarget(
+	//	surface.Get(),
+	//	&props,
+	//	m_d2dRenderTarget.ReleaseAndGetAddressOf()
+	//));
+
+	//m_d2dDeviceContext->SetTarget()
 }
 
 void DX::DeviceResources::SetWindow(HWND window, int width, int height) noexcept
@@ -189,7 +220,6 @@ void DX::DeviceResources::HandleDeviceLost()
 		m_deviceNotify->OnDeviceLost();
 	}
 
-	m_renderTarget.Reset();
 	m_d2dTargetBitmap.Reset();
 	m_dxgiSwapChain.Reset();
 
@@ -241,5 +271,6 @@ void DX::DeviceResources::CreateFactory()
 
 	// https://github.com/microsoft/Windows-classic-samples/blob/master/Samples/InteractionContextProduceTouchInput/cpp/DeviceResources.cpp
 	DX::ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
-	DX::ThrowIfFailed(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, m_d2dFactory.ReleaseAndGetAddressOf()));
+	DX::ThrowIfFailed(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, m_d2dFactory.ReleaseAndGetAddressOf()));
+	DX::ThrowIfFailed(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_dwFactory.ReleaseAndGetAddressOf())));
 }

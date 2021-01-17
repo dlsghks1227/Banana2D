@@ -36,7 +36,10 @@ namespace DX
 		auto				GetD2DDevice()			const noexcept		{ return m_d2dDevice.Get(); }
 		auto				GetD2DDeviceContext()	const noexcept		{ return m_d2dDeviceContext.Get(); }
 
-		ID3D11Texture2D*	GetRenderTarget()		const noexcept		{ return m_renderTarget.Get(); }
+		auto				GetDWFactory()			const noexcept		{ return m_dwFactory.Get(); }
+		auto				GetDWTextFormat()		const noexcept		{ return m_textFormat.Get(); }
+
+		ID2D1Bitmap1*		GetTargetBitmap()		const noexcept		{ return m_d2dTargetBitmap.Get(); }
 
 		HWND				GetWindow()				const noexcept		{ return m_window; }
 		D3D_FEATURE_LEVEL	GetDeviceFeatureLevel() const noexcept		{ return m_d3dFeatureLevel; }
@@ -56,10 +59,15 @@ namespace DX
 		Microsoft::WRL::ComPtr<ID2D1Device>				m_d2dDevice;
 		Microsoft::WRL::ComPtr<ID2D1DeviceContext>		m_d2dDeviceContext;
 
+		// DirectWrite objects.
+		Microsoft::WRL::ComPtr<IDWriteFactory>			m_dwFactory;
+		Microsoft::WRL::ComPtr<IDWriteTextFormat>		m_textFormat;
 
 		// Direct2D rendering objects.
-		Microsoft::WRL::ComPtr<ID3D11Texture2D>			m_renderTarget;
+		//Microsoft::WRL::ComPtr<ID3D11Texture2D>		m_renderTarget;
+		//Microsoft::WRL::ComPtr<ID2D1RenderTarget>		m_d2dRenderTarget;
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1>			m_d2dTargetBitmap;
+
 
 		// Direct3D properties.
 
