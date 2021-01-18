@@ -29,9 +29,14 @@
 #include <memory>
 #include <stdexcept>
 
+#include <string>
+#include <sstream>
+#include <map>
+#include <list>
+#include <vector>
+
 #include <wrl.h>
 #include <iostream>
-#include <sstream>
 
 // Direct2D 헤더 파일입니다.
 #if defined(NTDDI_WIN10_RS2)
