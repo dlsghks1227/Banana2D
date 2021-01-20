@@ -8,6 +8,8 @@ Banana2D::Banana2D() noexcept(false) :
 {
 	m_deviceResources = std::make_unique<DX::DeviceResources>();
 	m_deviceResources->RegisterDeviceNotify(this);
+
+	m_SceneManager = std::make_unique<SceneManager>();
 }
 
 void Banana2D::Initialize(HWND window, int width, int height)
@@ -20,8 +22,11 @@ void Banana2D::Initialize(HWND window, int width, int height)
 	m_deviceResources->CreateWindowSizeDependentResources();
 	CreateWindowSizeDependentResources();
 
+	// 프레임 제한
 	//m_timer.SetFixedTimeStep(true);
 	//m_timer.SetTargetElapsedSeconds(1.0 / 60.0);
+
+	m_SceneManager->Initalize();
 }
 
 void Banana2D::Tick()
@@ -101,6 +106,8 @@ void Banana2D::Update(DX::StepTimer const& timer)
 
 	m_frameInfoText.str(L"");
 	m_frameInfoText << "FPS : " << timer.GetFramesPerSecond();
+
+	m_SceneManager->OnUpdate(timer);
 }
 
 void Banana2D::Render()
@@ -118,6 +125,8 @@ void Banana2D::Render()
 	int height = static_cast<int>(rtSize.height);
 
 	context->BeginDraw();
+
+	m_SceneManager->OnRender((*context));
 
 	// ----- Clear -----
 	context->SetTransform(D2D1::Matrix3x2F::Identity());

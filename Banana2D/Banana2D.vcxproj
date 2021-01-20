@@ -142,8 +142,11 @@
   <ItemGroup>
     <ClInclude Include="Banana2D.h" />
     <ClInclude Include="DeviceResources.h" />
+    <ClInclude Include="GameManage.h" />
     <ClInclude Include="header.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="IScene.h" />
+    <ClInclude Include="MainScene.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="StepTimer.h" />
@@ -152,7 +155,9 @@
   <ItemGroup>
     <ClCompile Include="Banana2D.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
+    <ClCompile Include="GameManage.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainScene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
   </ItemGroup>
   <ItemGroup>

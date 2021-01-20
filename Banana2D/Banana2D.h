@@ -2,6 +2,8 @@
 #include "DeviceResources.h"
 #include "StepTimer.h"
 
+#include "SceneManager.h"
+
 class Banana2D final : public DX::IDeviceNotify
 {
 public:
@@ -48,10 +50,13 @@ private:
 	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_GridColor;
 	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_TextColor;
 
-	DX::StepTimer		m_timer;
+	// Manage
+	std::unique_ptr<SceneManager>		m_SceneManager;
 
-	std::wstringstream	m_frameInfoText;
-	D2D1_POINT_2F		m_pos;
+	DX::StepTimer						m_timer;
+
+	std::wstringstream					m_frameInfoText;
+	D2D1_POINT_2F						m_pos;
 
 };
 

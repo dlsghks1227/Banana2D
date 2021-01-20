@@ -27,10 +27,12 @@
 #include <exception>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 
 #include <string>
 #include <sstream>
+#include <variant>
 #include <map>
 #include <list>
 #include <vector>
