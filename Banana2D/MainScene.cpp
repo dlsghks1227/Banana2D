@@ -25,7 +25,7 @@ void MainScene::OnUpdate(DX::StepTimer const& timer)
 }
 
 
-void MainScene::OnRender(ID2D1DeviceContext const& context)
+void MainScene::OnRender(DX::DeviceResources const& device)
 {
 
 }

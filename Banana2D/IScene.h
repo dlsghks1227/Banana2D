@@ -1,12 +1,22 @@
 #pragma once
-#include "framework.h"
 #include "StepTimer.h"
+#include "DeviceResources.h"
 
-__interface IScene
+class IScene abstract
 {
-	void OnEnterScene();
-	void OnExitScene();
+public:
+	IScene() noexcept(false) = default;
+	~IScene() = default;
 
-	void OnUpdate(DX::StepTimer const& timer);
-	void OnRender(ID2D1DeviceContext const& context);
+	IScene(IScene&&) = default;
+	IScene& operator = (IScene&&) = default;
+
+	IScene(IScene const&) = delete;
+	IScene& operator = (IScene const&) = delete;
+
+	virtual void OnEnterScene() = 0;
+	virtual void OnExitScene() = 0;
+
+	virtual void OnUpdate(DX::StepTimer const& timer) = 0;
+	virtual void OnRender(DX::DeviceResources const& device) = 0;
 };

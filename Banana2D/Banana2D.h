@@ -48,15 +48,9 @@ private:
 
 	// Grid
 	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_GridColor;
-	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_TextColor;
 
-	// Manage
-	std::unique_ptr<SceneManager>		m_SceneManager;
+	//// Manage
+	std::unique_ptr<SceneManager>					m_SceneManager;
 
-	DX::StepTimer						m_timer;
-
-	std::wstringstream					m_frameInfoText;
-	D2D1_POINT_2F						m_pos;
-
+	DX::StepTimer									m_timer;
 };
-

@@ -45,6 +45,9 @@
     <ClInclude Include="MainScene.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MenuScene.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="IScene.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -72,13 +75,16 @@
     <ClCompile Include="DeviceResources.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="GameManage.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="MainScene.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuScene.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

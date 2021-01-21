@@ -2,9 +2,7 @@
 #include "Banana2D.h"
 
 
-Banana2D::Banana2D() noexcept(false) :
-	m_frameInfoText{},
-	m_pos(D2D1::Point2F(0.0f, 0.0f))
+Banana2D::Banana2D() noexcept(false)
 {
 	m_deviceResources = std::make_unique<DX::DeviceResources>();
 	m_deviceResources->RegisterDeviceNotify(this);
@@ -25,8 +23,7 @@ void Banana2D::Initialize(HWND window, int width, int height)
 	// 프레임 제한
 	//m_timer.SetFixedTimeStep(true);
 	//m_timer.SetTargetElapsedSeconds(1.0 / 60.0);
-
-	m_SceneManager->Initalize();
+	//m_SceneManager.Dispatch(StartGame());
 }
 
 void Banana2D::Tick()
@@ -104,8 +101,8 @@ void Banana2D::Update(DX::StepTimer const& timer)
 {
 	float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
 
-	m_frameInfoText.str(L"");
-	m_frameInfoText << "FPS : " << timer.GetFramesPerSecond();
+	//m_frameInfoText.str(L"");
+	//m_frameInfoText << "FPS : " << timer.GetFramesPerSecond();
 
 	m_SceneManager->OnUpdate(timer);
 }
@@ -126,20 +123,20 @@ void Banana2D::Render()
 
 	context->BeginDraw();
 
-	m_SceneManager->OnRender((*context));
+	m_SceneManager->OnRender((*m_deviceResources));
 
 	// ----- Clear -----
 	context->SetTransform(D2D1::Matrix3x2F::Identity());
 	context->Clear(D2D1::ColorF(D2D1::ColorF::White));
 	// -----------------
 
-	context->DrawTextW(
-		m_frameInfoText.str().c_str(),
-		static_cast<UINT32>(m_frameInfoText.str().size()),
-		textFormat,
-		D2D1::RectF(10.0f, 10.0f, rtSize.width, rtSize.height),
-		m_TextColor.Get()
-	);
+	//context->DrawTextW(
+	//	m_frameInfoText.str().c_str(),
+	//	static_cast<UINT32>(m_frameInfoText.str().size()),
+	//	textFormat,
+	//	D2D1::RectF(10.0f, 10.0f, rtSize.width, rtSize.height),
+	//	m_TextColor.Get()
+	//);
 
 	for (int x = 0; x < width; x += 10)
 	{
@@ -169,17 +166,13 @@ void Banana2D::Render()
 void Banana2D::CreateDeviceDependentResources()
 {
 	auto context = m_deviceResources->GetD2DDeviceContext();
-	auto dwfactory = m_deviceResources->GetDWFactory();
 
 	DX::ThrowIfFailed(context->CreateSolidColorBrush(
 		D2D1::ColorF(D2D1::ColorF::LightSlateGray),
 		m_GridColor.ReleaseAndGetAddressOf()
 	));
 
-	DX::ThrowIfFailed(context->CreateSolidColorBrush(
-		D2D1::ColorF(D2D1::ColorF::Black),
-		m_TextColor.ReleaseAndGetAddressOf()
-	));
+
 }
 
 void Banana2D::CreateWindowSizeDependentResources()

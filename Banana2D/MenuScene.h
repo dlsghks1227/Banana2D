@@ -1,11 +1,11 @@
 #pragma once
 #include "IScene.h"
 
-class MainScene final : public IScene
+class MenuScene final : public IScene
 {
 public:
-	MainScene() noexcept(false);
-	~MainScene() = default;
+	MenuScene() noexcept(false);
+	~MenuScene() = default;
 
 	void OnEnterScene() override;
 	void OnExitScene() override;
@@ -14,4 +14,8 @@ public:
 	void OnRender(DX::DeviceResources const& device) override;
 
 private:
+	std::wstringstream								m_frameInfoText;
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_TextColor;
+
 };
+

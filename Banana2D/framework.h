@@ -33,7 +33,9 @@
 #include <string>
 #include <sstream>
 #include <variant>
+#include <optional>
 #include <map>
+#include <unordered_map>
 #include <list>
 #include <vector>
 
