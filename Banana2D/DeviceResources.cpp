@@ -266,6 +266,44 @@ void DX::DeviceResources::Present()
 	}
 }
 
+void DX::DeviceResources::LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight, ID2D1Bitmap** ppBitmap)
+{
+	Microsoft::WRL::ComPtr<IWICBitmapDecoder>		decoder;
+	Microsoft::WRL::ComPtr<IWICBitmapFrameDecode>	source;
+	Microsoft::WRL::ComPtr<IWICStream>				stream;
+	Microsoft::WRL::ComPtr<IWICFormatConverter>		converter;
+	Microsoft::WRL::ComPtr<IWICBitmapScaler>		Scaler;
+
+	DX::ThrowIfFailed(m_wicFactory->CreateDecoderFromFilename(
+		uri,
+		nullptr,
+		GENERIC_READ,
+		WICDecodeMetadataCacheOnLoad,
+		decoder.ReleaseAndGetAddressOf()
+	));
+
+	DX::ThrowIfFailed(m_wicFactory->CreateFormatConverter(
+		converter.ReleaseAndGetAddressOf()
+	));
+
+	DX::ThrowIfFailed(decoder->GetFrame(0, source.ReleaseAndGetAddressOf()));
+
+	DX::ThrowIfFailed(converter->Initialize(
+		source.Get(),
+		GUID_WICPixelFormat32bppPBGRA,
+		WICBitmapDitherTypeNone,
+		nullptr,
+		0.0f,
+		WICBitmapPaletteTypeCustom
+	));
+
+	DX::ThrowIfFailed(m_d2dDeviceContext->CreateBitmapFromWicBitmap(
+		converter.Get(),
+		nullptr,
+		ppBitmap
+	));
+}
+
 void DX::DeviceResources::CreateFactory()
 {
 
@@ -273,4 +311,5 @@ void DX::DeviceResources::CreateFactory()
 	DX::ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
 	DX::ThrowIfFailed(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, m_d2dFactory.ReleaseAndGetAddressOf()));
 	DX::ThrowIfFailed(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_dwFactory.ReleaseAndGetAddressOf())));
+	DX::ThrowIfFailed(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(m_wicFactory.ReleaseAndGetAddressOf())));
 }

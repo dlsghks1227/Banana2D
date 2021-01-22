@@ -44,13 +44,15 @@ private:
 	void CreateWindowSizeDependentResources();
 
 	// 디바이스 리소스
-	std::unique_ptr<DX::DeviceResources>			m_deviceResources;
+	std::unique_ptr<DX::DeviceResources>				m_deviceResources;
 
 	// Grid
-	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>	m_GridColor;
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>		m_GridColor;
+
+	std::vector<Microsoft::WRL::ComPtr<ID2D1Bitmap>>	m_Bitmaps;
 
 	//// Manage
-	std::unique_ptr<SceneManager>					m_SceneManager;
+	std::unique_ptr<SceneManager>						m_SceneManager;
 
-	DX::StepTimer									m_timer;
+	DX::StepTimer										m_timer;
 };

@@ -20,10 +20,24 @@ void Banana2D::Initialize(HWND window, int width, int height)
 	m_deviceResources->CreateWindowSizeDependentResources();
 	CreateWindowSizeDependentResources();
 
+
 	// 프레임 제한
 	//m_timer.SetFixedTimeStep(true);
 	//m_timer.SetTargetElapsedSeconds(1.0 / 60.0);
 	//m_SceneManager.Dispatch(StartGame());
+
+	for (int i = 0; i < 4; i++) {
+		std::wstringstream str(L"");
+		str << L"Image/Squid/Stand/" << std::setfill(L'0') << std::setw(4) << i << L".png";
+		ID2D1Bitmap* temp;
+		m_deviceResources->LoadBitmapFromFile(str.str().c_str(), 0, 0, &temp);
+		m_Bitmaps.push_back(std::move(temp));
+		SafeRelease(&temp);
+	}
+	//m_deviceResources->LoadBitmapFromFile(L"Image/Squid/Stand/0000.png", 0, 0, &m_BitmapImage);
+	//m_deviceResources->LoadBitmapFromFile(L"Image/Squid/Stand/0001.png", 0, 0, m_BitmapImage2.ReleaseAndGetAddressOf());
+	//m_deviceResources->LoadBitmapFromFile(L"Image/Squid/Stand/0002.png", 0, 0, m_BitmapImage3.ReleaseAndGetAddressOf());
+
 }
 
 void Banana2D::Tick()
@@ -123,12 +137,12 @@ void Banana2D::Render()
 
 	context->BeginDraw();
 
-	m_SceneManager->OnRender((*m_deviceResources));
-
 	// ----- Clear -----
 	context->SetTransform(D2D1::Matrix3x2F::Identity());
 	context->Clear(D2D1::ColorF(D2D1::ColorF::White));
 	// -----------------
+
+	m_SceneManager->OnRender((*m_deviceResources));
 
 	//context->DrawTextW(
 	//	m_frameInfoText.str().c_str(),
@@ -145,7 +159,7 @@ void Banana2D::Render()
 			D2D1::Point2(static_cast<FLOAT>(x), rtSize.height),
 			m_GridColor.Get(),
 			(x % 50 == 0) ? 1.0f : 0.5f
-			);
+		);
 	}
 
 	for (int y = 0; y < height; y += 10)
@@ -157,6 +171,44 @@ void Banana2D::Render()
 			(y % 50 == 0) ? 1.0f : 0.5f
 		);
 	}
+
+	float temp = 100.0f;
+	for (auto& item : m_Bitmaps) {
+		D2D1_SIZE_F size = item.Get()->GetSize();
+		D2D1_POINT_2F center = D2D1::Point2(temp - (size.width * 0.5f), temp - (size.height * 0.5f));
+		float scale = 1.0f;
+
+		context->DrawBitmap(
+			item.Get(),
+			D2D1::RectF(
+				center.x,
+				center.y,
+				center.x + (size.width * scale),
+				center.y + (size.height * scale)
+			),
+			1.0f,
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
+		);
+	}
+
+	//if (m_BitmapImage)
+	//{
+	//	D2D1_SIZE_F size = m_BitmapImage->GetSize();
+	//	D2D1_POINT_2F pos = D2D1::Point2(10.0f, 10.0f);
+	//	float scale = 1.0f;
+
+	//	context->DrawBitmap(
+	//		m_BitmapImage,
+	//		D2D1::RectF(
+	//			pos.x,
+	//			pos.y,
+	//			pos.x + (size.width * scale),
+	//			pos.y + (size.height * scale)
+	//		),
+	//		1.0f,
+	//		D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
+	//	);
+	//}
 
 	DX::ThrowIfFailed(context->EndDraw());
 
@@ -171,8 +223,6 @@ void Banana2D::CreateDeviceDependentResources()
 		D2D1::ColorF(D2D1::ColorF::LightSlateGray),
 		m_GridColor.ReleaseAndGetAddressOf()
 	));
-
-
 }
 
 void Banana2D::CreateWindowSizeDependentResources()

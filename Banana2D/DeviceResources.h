@@ -28,6 +28,7 @@ namespace DX
 		void RegisterDeviceNotify(IDeviceNotify* deviceNotify) noexcept { m_deviceNotify = deviceNotify; }
 		void Present();
 
+		void LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight, ID2D1Bitmap** ppBitmap);
 
 		auto				GetDXGIFactory()		const noexcept		{ return m_dxgiFactory.Get(); }
 		auto				GetD3DDevice()			const noexcept		{ return m_d3dDevice.Get(); }
@@ -38,6 +39,8 @@ namespace DX
 
 		auto				GetDWFactory()			const noexcept		{ return m_dwFactory.Get(); }
 		auto				GetDWTextFormat()		const noexcept		{ return m_textFormat.Get(); }
+
+		auto				GetWICFactory()			const noexcept		{ return m_wicFactory.Get(); }
 
 		ID2D1Bitmap1*		GetTargetBitmap()		const noexcept		{ return m_d2dTargetBitmap.Get(); }
 
@@ -62,6 +65,9 @@ namespace DX
 		// DirectWrite objects.
 		Microsoft::WRL::ComPtr<IDWriteFactory>			m_dwFactory;
 		Microsoft::WRL::ComPtr<IDWriteTextFormat>		m_textFormat;
+
+		// WIC objects
+		Microsoft::WRL::ComPtr<IWICImagingFactory>		m_wicFactory;
 
 		// Direct2D rendering objects.
 		//Microsoft::WRL::ComPtr<ID3D11Texture2D>		m_renderTarget;

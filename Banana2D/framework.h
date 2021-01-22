@@ -41,6 +41,7 @@
 
 #include <wrl.h>
 #include <iostream>
+#include <iomanip>
 
 // Direct2D 헤더 파일입니다.
 #if defined(NTDDI_WIN10_RS2)
