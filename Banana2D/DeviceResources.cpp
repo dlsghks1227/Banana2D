@@ -1,15 +1,19 @@
-#include "framework.h"
 #include "DeviceResources.h"
 
-DX::DeviceResources::DeviceResources() noexcept :
+using namespace DX;
+
+std::unique_ptr<DeviceResources>		g_deviceResources = std::make_unique<DeviceResources>();
+
+DeviceResources::DeviceResources() noexcept :
 	m_window(nullptr),
 	m_d3dFeatureLevel(D3D_FEATURE_LEVEL_9_1),
 	m_outputSize{ 0, 0, 1, 1 },
 	m_deviceNotify(nullptr)
 {
+
 }
 
-void DX::DeviceResources::CreateDeviceResources()
+void DeviceResources::CreateDeviceResources()
 {
 	// API 기본값과 다른 색상 채널 순서를 가진 표면에 대한 지원을 추가합니다.
 	// Direct3D 리소스와 Direct2D 상호 호환성을 위해 필요
@@ -28,10 +32,10 @@ void DX::DeviceResources::CreateDeviceResources()
 		D3D_FEATURE_LEVEL_9_1
 	};
 
-	Microsoft::WRL::ComPtr<ID3D11Device> device;
-	Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
-	// D3DDeviceContext 객체를 생성하지만 필요 X
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
+	Microsoft::WRL::ComPtr<IDXGIDevice>				dxgiDevice;
+
+	Microsoft::WRL::ComPtr<ID3D11Device>			device;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>		deviceContext;
 
 	DX::ThrowIfFailed(D3D11CreateDevice(
 		nullptr,
@@ -43,7 +47,8 @@ void DX::DeviceResources::CreateDeviceResources()
 		D3D11_SDK_VERSION,
 		device.GetAddressOf(),
 		&m_d3dFeatureLevel,
-		deviceContext.GetAddressOf()));
+		deviceContext.GetAddressOf()
+	));
 
 	DX::ThrowIfFailed(device.As(&dxgiDevice));
 	DX::ThrowIfFailed(device.As(&m_d3dDevice));
@@ -53,14 +58,13 @@ void DX::DeviceResources::CreateDeviceResources()
 		m_d2dDevice.ReleaseAndGetAddressOf()
 	));
 
-
 	DX::ThrowIfFailed(m_d2dDevice->CreateDeviceContext(
 		D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
 		m_d2dDeviceContext.ReleaseAndGetAddressOf()
 	));
 }
 
-void DX::DeviceResources::CreateWindowSizeDependentResources()
+void DeviceResources::CreateWindowSizeDependentResources()
 {
 	if (!m_window)
 	{
@@ -68,9 +72,8 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	}
 
 	// 이전 창 크기 특정 컨텍스트 초기화
-	ID3D11RenderTargetView* nullViews[] = { nullptr };
 	m_d2dTargetBitmap.Reset();
-	m_textFormat.Reset();
+	m_dwTextFormat.Reset();
 
 	m_d2dDeviceContext->SetTarget(nullptr);
 	m_d2dDeviceContext->Flush();
@@ -104,18 +107,18 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	else
 	{
 		// 스왑 체인에 대한 설정을 정의
-		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-		swapChainDesc.Width = backBufferWidth;
-		swapChainDesc.Height = backBufferHeight;
-		swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 2;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-		swapChainDesc.Flags = 0u;
+		DXGI_SWAP_CHAIN_DESC1 swapChainDesc	= {};
+		swapChainDesc.Width					= backBufferWidth;
+		swapChainDesc.Height				= backBufferHeight;
+		swapChainDesc.Format				= DXGI_FORMAT_B8G8R8A8_UNORM;
+		swapChainDesc.BufferUsage			= DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.BufferCount			= 2;
+		swapChainDesc.SampleDesc.Count		= 1;
+		swapChainDesc.SampleDesc.Quality	= 0;
+		swapChainDesc.Scaling				= DXGI_SCALING_STRETCH;
+		swapChainDesc.SwapEffect			= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+		swapChainDesc.AlphaMode				= DXGI_ALPHA_MODE_IGNORE;
+		swapChainDesc.Flags					= 0u;
 
 		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = {};
 		fsSwapChainDesc.Windowed = TRUE;
@@ -131,8 +134,6 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
 		DX::ThrowIfFailed(m_dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER));
 	}
-
-	//DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(m_renderTarget.ReleaseAndGetAddressOf())));
 
 	Microsoft::WRL::ComPtr<IDXGISurface> surface;
 	DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(surface.ReleaseAndGetAddressOf())));
@@ -159,36 +160,19 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	DX::ThrowIfFailed(m_dwFactory->CreateTextFormat(
 		L"Arial",
 		nullptr,
-		DWRITE_FONT_WEIGHT_REGULAR,
+		DWRITE_FONT_WEIGHT_NORMAL,
 		DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_NORMAL,
 		21.0f,
-		L"en-us",
-		m_textFormat.ReleaseAndGetAddressOf()
+		L"",
+		m_dwTextFormat.ReleaseAndGetAddressOf()
 	));
 
-	// IDXGISwapChain에서 surface를 가져와 표면 RenderTarget을 생성합니다.
-	//Microsoft::WRL::ComPtr<IDXGISurface> surface;
-	//DX::ThrowIfFailed(m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(surface.ReleaseAndGetAddressOf())));
-
-
-	//D2D1_RENDER_TARGET_PROPERTIES props =
-	//	D2D1::RenderTargetProperties(
-	//		D2D1_RENDER_TARGET_TYPE_DEFAULT,
-	//		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
-	//		0, 0
-	//	);
-
-	//DX::ThrowIfFailed(m_d2dFactory->CreateDxgiSurfaceRenderTarget(
-	//	surface.Get(),
-	//	&props,
-	//	m_d2dRenderTarget.ReleaseAndGetAddressOf()
-	//));
-
-	//m_d2dDeviceContext->SetTarget()
+	DX::ThrowIfFailed(m_dwTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER));
+	DX::ThrowIfFailed(m_dwTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER));
 }
 
-void DX::DeviceResources::SetWindow(HWND window, int width, int height) noexcept
+void DeviceResources::SetWindow(HWND window, int width, int height) noexcept
 {
 	m_window = window;
 
@@ -197,7 +181,7 @@ void DX::DeviceResources::SetWindow(HWND window, int width, int height) noexcept
 	m_outputSize.bottom = height;
 }
 
-bool DX::DeviceResources::WindowSizeChanged(int width, int height)
+bool DeviceResources::WindowSizeChanged(int width, int height)
 {
 	RECT newRc;
 	newRc.left = newRc.top = 0;
@@ -213,7 +197,7 @@ bool DX::DeviceResources::WindowSizeChanged(int width, int height)
 	return true;
 }
 
-void DX::DeviceResources::HandleDeviceLost()
+void DeviceResources::HandleDeviceLost()
 {
 	if (m_deviceNotify)
 	{
@@ -221,6 +205,8 @@ void DX::DeviceResources::HandleDeviceLost()
 	}
 
 	m_d2dTargetBitmap.Reset();
+	m_dwTextFormat.Reset();
+
 	m_dxgiSwapChain.Reset();
 
 	m_d2dDeviceContext.Reset();
@@ -228,6 +214,8 @@ void DX::DeviceResources::HandleDeviceLost()
 	m_d2dDevice.Reset();
 	m_d3dDevice.Reset();
 
+	m_dwFactory.Reset();
+	m_wicFactory.Reset();
 	m_d2dFactory.Reset();
 	m_dxgiFactory.Reset();
 
@@ -240,7 +228,7 @@ void DX::DeviceResources::HandleDeviceLost()
 	}
 }
 
-void DX::DeviceResources::Present()
+void DeviceResources::Present()
 {
 	HRESULT hr = E_FAIL;
 	hr = m_dxgiSwapChain->Present(1, 0);
@@ -266,50 +254,16 @@ void DX::DeviceResources::Present()
 	}
 }
 
-void DX::DeviceResources::LoadBitmapFromFile(PCWSTR uri, UINT destinationWidth, UINT destinationHeight, ID2D1Bitmap** ppBitmap)
+void DeviceResources::CreateFactory()
 {
-	Microsoft::WRL::ComPtr<IWICBitmapDecoder>		decoder;
-	Microsoft::WRL::ComPtr<IWICBitmapFrameDecode>	source;
-	Microsoft::WRL::ComPtr<IWICStream>				stream;
-	Microsoft::WRL::ComPtr<IWICFormatConverter>		converter;
-	Microsoft::WRL::ComPtr<IWICBitmapScaler>		Scaler;
-
-	DX::ThrowIfFailed(m_wicFactory->CreateDecoderFromFilename(
-		uri,
-		nullptr,
-		GENERIC_READ,
-		WICDecodeMetadataCacheOnLoad,
-		decoder.ReleaseAndGetAddressOf()
-	));
-
-	DX::ThrowIfFailed(m_wicFactory->CreateFormatConverter(
-		converter.ReleaseAndGetAddressOf()
-	));
-
-	DX::ThrowIfFailed(decoder->GetFrame(0, source.ReleaseAndGetAddressOf()));
-
-	DX::ThrowIfFailed(converter->Initialize(
-		source.Get(),
-		GUID_WICPixelFormat32bppPBGRA,
-		WICBitmapDitherTypeNone,
-		nullptr,
-		0.0f,
-		WICBitmapPaletteTypeCustom
-	));
-
-	DX::ThrowIfFailed(m_d2dDeviceContext->CreateBitmapFromWicBitmap(
-		converter.Get(),
-		nullptr,
-		ppBitmap
-	));
-}
-
-void DX::DeviceResources::CreateFactory()
-{
-
-	// https://github.com/microsoft/Windows-classic-samples/blob/master/Samples/InteractionContextProduceTouchInput/cpp/DeviceResources.cpp
 	DX::ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
 	DX::ThrowIfFailed(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, m_d2dFactory.ReleaseAndGetAddressOf()));
 	DX::ThrowIfFailed(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_dwFactory.ReleaseAndGetAddressOf())));
 	DX::ThrowIfFailed(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(m_wicFactory.ReleaseAndGetAddressOf())));
+}
+
+void DX::DeviceResources::FontLoadFromFile(std::wstring const& path)
+{
+	Microsoft::WRL::ComPtr<IDWriteFontSetBuilder1>		fontSetBuilder;
+	Microsoft::WRL::ComPtr<IDWriteFontFile>				fontFile;
 }

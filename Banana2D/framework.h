@@ -4,56 +4,41 @@
 
 #pragma once
 
-#include <winsdkver.h>
-#include <sdkddkver.h>
-
 #include "targetver.h"
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용을 Windows 헤더에서 제외합니다.
 // Windows 헤더 파일
 #include <windows.h>
 #include <wincodec.h>
 
+#include <wrl.h>
+
+// C 런타임 헤더 파일입니다.
+#include <stdlib.h>
+#include <malloc.h>
+#include <memory>
+#include <stdexcept>
+#include <tchar.h>
+#include <cstdio>
+#include <exception>
+#include <vector>
+
+#ifdef _DEBUG
+#include <iostream>
+#endif
+
 // DirectX apps don't need GDI
 #define NODRAWTEXT
 #define NOGDI
 #define NOBITMAP
 
-// C 런타임 헤더 파일입니다.
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-#include <cstdio>
-#include <cwchar>
-#include <exception>
-#include <iterator>
-#include <memory>
-#include <mutex>
-#include <stdexcept>
-
-#include <string>
-#include <sstream>
-#include <variant>
-#include <optional>
-#include <map>
-#include <unordered_map>
-#include <list>
-#include <vector>
-
-#include <wrl.h>
-#include <iostream>
-#include <iomanip>
-
-// Direct2D 헤더 파일입니다.
-#if defined(NTDDI_WIN10_RS2)
+// DirectX 헤더 파일입니다.
 #include <dxgi1_6.h>
-#else
-#include <dxgi1_5.h>
-#endif
-#include <d2d1_3.h>
-#include <d2d1_1helper.h>
 #include <d3d11_4.h>
-#include <dwrite.h>
+#include <d2d1_3.h>
+#include <dwrite_3.h>
 
+// DirectXMath
+// https://docs.microsoft.com/en-us/windows/win32/dxmath/directxmath-portal
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
@@ -62,6 +47,13 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dwrite.lib")
 
+// 모듈 기본 주소
+#ifndef HINST_THISCOMPONENT
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+#define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
+#endif
+
+// 콘솔창 출력
 #ifndef Assert
 #if defined( DEBUG ) || defined( _DEBUG )
 #include <dxgidebug.h>
@@ -72,6 +64,7 @@
 #endif // DEBUG || _DEBUG
 #endif
 
+// 예외처리
 namespace DX
 {
 	// https://github.com/Microsoft/DirectXTK/wiki/ThrowIfFailed
@@ -103,6 +96,7 @@ namespace DX
 		}
 	}
 }
+
 // 인터페이스 해제
 template<class Interface>
 inline UINT32 SafeRelease(Interface** ppInterfaceToRelease)
@@ -126,10 +120,3 @@ inline UINT32 SafeRelease(Interface** ppInterfaceToRelease)
 
 	return ret;
 }
-
-
-// 모듈 기본 주소
-#ifndef HINST_THISCOMPONENT
-EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-#define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
-#endif
