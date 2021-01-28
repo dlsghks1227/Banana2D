@@ -15,8 +15,14 @@ void Game::Initialize(HWND window, int width, int height)
 	g_deviceResources->CreateWindowSizeDependentResources();
 	CreateWindowSizeDependentResources();
 
-	m_texture = std::make_shared<DX::Texture>();
-	m_texture->LoadFromFile(L"Image/default.png");
+	m_texture1 = std::make_shared<DX::Texture>();
+	m_texture1->LoadFromFile(L"Image/Squid/Stand/0000.png");
+
+	m_texture2 = std::make_shared<DX::Texture>();
+	m_texture2->LoadFromFile(L"Image/Squid/Stand/0001.png");
+
+	m_texture3 = std::make_shared<DX::Texture>();
+	m_texture3->LoadFromFile(L"Image/Squid/Stand/0002.png");
 
 	m_text = std::make_shared<DX::Text>();
 	m_text->Initialize();
@@ -75,6 +81,9 @@ void Game::OnResuming()
 void Game::Update(DX::StepTimer const& timer)
 {
 	float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
+
+	auto context = g_deviceResources->GetD2DDeviceContext();
+	D2D1_SIZE_F rtSize = context->GetSize();
 }
 
 void Game::Render()
@@ -97,6 +106,8 @@ void Game::Render()
 	context->Clear(D2D1::ColorF(D2D1::ColorF::White));
 	// -----------------
 
+	g_camera->SetTarget(D2D1::Point2(rtSize.width * 0.5f, rtSize.height * 0.5f));
+
 #ifdef _DEBUG
 	for (int x = 0; x < width; x += 10)
 	{
@@ -118,14 +129,21 @@ void Game::Render()
 		);
 	}
 #endif
-
-	m_texture->Draw(D2D1::Point2(0.0f, 0.0f), D2D1::SizeF(0.5f, 0.5f), 0.0f);
-	m_text->Draw(L"Text", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(2.0f, 2.0f));
-
 #ifdef _DEBUG
-	context->DrawLine(D2D1::Point2(40.0f, 50.0f), D2D1::Point2(60.0f, 50.0f), m_gridColor.Get(), 2.0f);
-	context->DrawLine(D2D1::Point2(50.0f, 40.0f), D2D1::Point2(50.0f, 60.0f), m_gridColor.Get(), 2.0f);
+	context->DrawLine(D2D1::Point2(-10.0f, 0.0f), D2D1::Point2(10.0f, 0.0f), m_gridColor.Get(), 2.0f);
+	context->DrawLine(D2D1::Point2(0.0f, -10.0f), D2D1::Point2(0.0f, 10.0f), m_gridColor.Get(), 2.0f);
 #endif
+
+	m_texture1->Draw(
+		D2D1::Point2(0.0f, 0.0f), 
+		D2D1::SizeF(1.0f, 1.0f), 
+		0.0f
+	);
+	m_texture2->Draw(D2D1::Point2(100.0f, 100.0f), D2D1::SizeF(0.5f, 0.5f), 0.0f);
+	m_texture3->Draw(D2D1::Point2(200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f), 90.0f);
+	m_text->Draw(L"Text", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f));
+	m_text->Draw(L"Banana", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f));
+	m_text->Draw(L"Asdasdas", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f));
 
 	DX::ThrowIfFailed(context->EndDraw());
 

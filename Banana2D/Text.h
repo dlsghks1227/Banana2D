@@ -2,6 +2,7 @@
 #include "framework.h"
 #include "IResource.h"
 #include "DeviceResources.h"
+#include "Camera.h"
 
 namespace DX
 {

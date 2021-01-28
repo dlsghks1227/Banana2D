@@ -78,7 +78,7 @@ void Texture::Draw(D2D1_POINT_2F pos, D2D1_SIZE_F scale, FLOAT angle)
 				));
 
 			context->SetTransform(
-				m_rotate * m_scale
+				m_rotate * m_scale * g_camera->GetMatrix()
 			);
 			context->DrawBitmap(
 				m_bitmap.Get(),
@@ -86,7 +86,6 @@ void Texture::Draw(D2D1_POINT_2F pos, D2D1_SIZE_F scale, FLOAT angle)
 				1.0f,
 				D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
 			);
-
 			context->SetTransform(D2D1::Matrix3x2F::Identity());
 		}
 	}

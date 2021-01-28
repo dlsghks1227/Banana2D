@@ -5,6 +5,8 @@
 #include "Texture.h"
 #include "Text.h"
 
+#include "InputManager.h"
+
 class Game final : public DX::IDeviceNotify
 {
 public:
@@ -46,7 +48,11 @@ private:
 
 	DX::StepTimer		m_timer;
 
-	std::shared_ptr<DX::Texture>		m_texture;
+	std::shared_ptr<DX::Texture>		m_texture1;
+	std::shared_ptr<DX::Texture>		m_texture2;
+	std::shared_ptr<DX::Texture>		m_texture3;
+
+
 	std::shared_ptr<DX::Text>			m_text;
 
 #ifdef _DEBUG

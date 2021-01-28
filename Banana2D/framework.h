@@ -22,6 +22,9 @@
 #include <exception>
 #include <vector>
 
+#include <queue>
+#include <unordered_map>
+
 #ifdef _DEBUG
 #include <iostream>
 #endif
@@ -37,6 +40,9 @@
 #include <d2d1_3.h>
 #include <dwrite_3.h>
 
+#define DIRECTINPUT_VERSION 0x8000
+#include <dinput.h>
+
 // DirectXMath
 // https://docs.microsoft.com/en-us/windows/win32/dxmath/directxmath-portal
 #include <DirectXMath.h>
@@ -46,6 +52,10 @@
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dwrite.lib")
+
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
+
 
 // 모듈 기본 주소
 #ifndef HINST_THISCOMPONENT

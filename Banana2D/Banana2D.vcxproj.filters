@@ -19,6 +19,15 @@
     <Filter Include="Game">
       <UniqueIdentifier>{2fa27503-6fc9-4ce3-8102-a1701bcea2d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Scene">
+      <UniqueIdentifier>{d91a2b2b-c7bb-498b-b515-f6a6ad5ef6d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Camera">
+      <UniqueIdentifier>{a42aa687-0343-4524-a4f9-f5fe08acebe8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Input">
+      <UniqueIdentifier>{c7bfa71d-6460-4995-9480-88be864aa90e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -51,6 +60,18 @@
     <ClInclude Include="IResource.h">
       <Filter>DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="IScene.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Game\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>Game\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Banana2D.cpp">
@@ -67,6 +88,15 @@
     </ClCompile>
     <ClCompile Include="Text.cpp">
       <Filter>DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Game\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>Game\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
