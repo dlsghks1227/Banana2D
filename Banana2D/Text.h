@@ -15,9 +15,10 @@ namespace DX
 		void Initialize();
 		void Draw(
 			std::wstring const& text,
-			D2D1_RECT_F			rect	= D2D1::RectF(0.0f, 0.0f, 0.0f, 0.0f),
-			D2D1_SIZE_F			scale	= D2D1::SizeF(1.0f, 1.0f),
-			FLOAT				angle	= 0.0f);
+			D2D1_RECT_F			rect		= D2D1::RectF(0.0f, 0.0f, 0.0f, 0.0f),
+			D2D1_SIZE_F			scale		= D2D1::SizeF(1.0f, 1.0f),
+			FLOAT				angle		= 0.0f,
+			bool				staticPos	= false);
 
 		void SetCenter(bool center) { m_isCenter = center; }
 		bool GetCenter()			{ return m_isCenter; }

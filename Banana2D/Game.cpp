@@ -1,6 +1,7 @@
 #include "Game.h"
 
-Game::Game() noexcept(false)
+Game::Game() noexcept(false) :
+	m_CameraPos(D2D1::Point2F(0.0f, 0.0f))
 {
 	g_deviceResources->RegisterDeviceNotify(this);
 }
@@ -84,6 +85,13 @@ void Game::Update(DX::StepTimer const& timer)
 
 	auto context = g_deviceResources->GetD2DDeviceContext();
 	D2D1_SIZE_F rtSize = context->GetSize();
+
+	D2D1_POINT_2F temp = D2D1::Point2F(0.0f, 0.0f);
+	if (g_inputManager->GetKeyPush(DIK_LEFT))	temp = D2D1::Point2F(temp.x - 1.0f, temp.y + 0.0f);
+	if (g_inputManager->GetKeyPush(DIK_RIGHT))	temp = D2D1::Point2F(temp.x + 1.0f, temp.y + 0.0f);
+	if (g_inputManager->GetKeyPush(DIK_UP))		temp = D2D1::Point2F(temp.x + 0.0f, temp.y - 1.0f);
+	if (g_inputManager->GetKeyPush(DIK_DOWN))	temp = D2D1::Point2F(temp.x + 0.0f, temp.y + 1.0f);
+	m_CameraPos = D2D1::Point2F(m_CameraPos.x + temp.x, m_CameraPos.y + temp.y);
 }
 
 void Game::Render()
@@ -106,7 +114,7 @@ void Game::Render()
 	context->Clear(D2D1::ColorF(D2D1::ColorF::White));
 	// -----------------
 
-	g_camera->SetTarget(D2D1::Point2(rtSize.width * 0.5f, rtSize.height * 0.5f));
+	g_camera->SetTarget(m_CameraPos);
 
 #ifdef _DEBUG
 	for (int x = 0; x < width; x += 10)

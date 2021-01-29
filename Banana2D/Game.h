@@ -52,6 +52,8 @@ private:
 	std::shared_ptr<DX::Texture>		m_texture2;
 	std::shared_ptr<DX::Texture>		m_texture3;
 
+	D2D1_POINT_2F						m_CameraPos;
+
 
 	std::shared_ptr<DX::Text>			m_text;
 

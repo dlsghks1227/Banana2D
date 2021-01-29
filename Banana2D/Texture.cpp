@@ -3,11 +3,11 @@
 using namespace DX;
 
 Texture::Texture() noexcept :
-	m_isCenter(true),
 	m_size(D2D1::SizeF(0.0f, 0.0f)),
 	m_rectangle(D2D1::RectF(0.0f, 0.0f, 0.0f, 0.0f)),
 	m_rotate(D2D1::Matrix3x2F::Identity()),
-	m_scale(D2D1::Matrix3x2F::Identity())
+	m_scale(D2D1::Matrix3x2F::Identity()),
+	m_isCenter(true)
 {
 }
 
@@ -55,7 +55,7 @@ void Texture::LoadFromFile(std::wstring const& path)
 	m_rectangle = D2D1::RectF(0.0f, 0.0f, m_size.width, m_size.height);
 }
 
-void Texture::Draw(D2D1_POINT_2F pos, D2D1_SIZE_F scale, FLOAT angle)
+void Texture::Draw(D2D1_POINT_2F pos, D2D1_SIZE_F scale, FLOAT angle, bool staticPos)
 {
 	if (m_bitmap)
 	{
@@ -78,8 +78,9 @@ void Texture::Draw(D2D1_POINT_2F pos, D2D1_SIZE_F scale, FLOAT angle)
 				));
 
 			context->SetTransform(
-				m_rotate * m_scale * g_camera->GetMatrix()
+				m_rotate * m_scale * (staticPos ? D2D1::Matrix3x2F::Identity() : g_camera->GetMatrix())
 			);
+					
 			context->DrawBitmap(
 				m_bitmap.Get(),
 				m_rectangle,

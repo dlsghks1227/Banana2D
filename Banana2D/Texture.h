@@ -15,12 +15,13 @@ namespace DX
 
 		void LoadFromFile(std::wstring const& path);
 		void Draw(
-			D2D1_POINT_2F	pos		= D2D1::Point2F(0.0f, 0.0f),
-			D2D1_SIZE_F		scale	= D2D1::SizeF(1.0f, 1.0f),
-			FLOAT			angle	= 0.0f);
+			D2D1_POINT_2F	pos			= D2D1::Point2F(0.0f, 0.0f),
+			D2D1_SIZE_F		scale		= D2D1::SizeF(1.0f, 1.0f),
+			FLOAT			angle		= 0.0f,
+			bool			staticPos	= false);
 
-		void SetCenter(bool center) { m_isCenter = center; }
-		bool GetCenter()			{ return m_isCenter; }
+		void SetCenter(bool center)		{ m_isCenter = center; }
+		bool GetCenter()				{ return m_isCenter; }
 
 	private:
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1>	m_bitmap;

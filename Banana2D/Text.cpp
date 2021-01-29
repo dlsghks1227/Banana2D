@@ -21,7 +21,7 @@ void Text::Initialize()
 	m_size = context->GetSize();
 }
 
-void Text::Draw(std::wstring const& text, D2D1_RECT_F rect, D2D1_SIZE_F scale, FLOAT angle)
+void Text::Draw(std::wstring const& text, D2D1_RECT_F rect, D2D1_SIZE_F scale, FLOAT angle, bool staticPos)
 {
 	if (m_isEnable == true)
 	{
@@ -31,7 +31,7 @@ void Text::Draw(std::wstring const& text, D2D1_RECT_F rect, D2D1_SIZE_F scale, F
 		m_scale = D2D1::Matrix3x2F::Scale(scale, D2D1::Point2F((rect.left + rect.right) * 0.5f, (rect.top + rect.bottom) * 0.5f));
 
 		context->SetTransform(
-			m_scale * g_camera->GetMatrix()
+			m_scale * (staticPos ? D2D1::Matrix3x2F::Identity() : g_camera->GetMatrix())
 		);
 
 #ifdef _DEBUG
