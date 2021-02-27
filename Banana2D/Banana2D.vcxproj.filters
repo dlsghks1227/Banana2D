@@ -28,6 +28,9 @@
     <Filter Include="Game\Input">
       <UniqueIdentifier>{c7bfa71d-6460-4995-9480-88be864aa90e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Scene\MainScene">
+      <UniqueIdentifier>{33decc19-fa74-4152-a542-10233845c787}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -60,17 +63,20 @@
     <ClInclude Include="IResource.h">
       <Filter>DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="IScene.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Game\Camera</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
       <Filter>Game\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="IScene.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneStateMachine.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="MainScene.h">
+      <Filter>Game\Scene\MainScene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -89,14 +95,17 @@
     <ClCompile Include="Text.cpp">
       <Filter>DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Game\Camera</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
       <Filter>Game\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneStateMachine.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="MainScene.cpp">
+      <Filter>Game\Scene\MainScene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -5,19 +5,20 @@
 // ¾À ÀüÈ¯
 // https://thatgamesguy.co.uk/cpp-game-dev-6/
 
-class SceneManager
+class SceneStateMachine
 {
 public:
-	SceneManager();
-	~SceneManager() = default;
+	SceneStateMachine();
+	~SceneStateMachine() = default;
 
-	SceneManager(SceneManager&&) = default;
-	SceneManager& operator = (SceneManager&&) = default;
+	SceneStateMachine(SceneStateMachine&&) = default;
+	SceneStateMachine& operator = (SceneStateMachine&&) = default;
 
-	SceneManager(SceneManager const&) = delete;
-	SceneManager& operator = (SceneManager const&) = delete;
+	SceneStateMachine(SceneStateMachine const&) = delete;
+	SceneStateMachine& operator = (SceneStateMachine const&) = delete;
 
 	void OnUpdate(DX::StepTimer const& timer);
+	void OnLateUpdate(DX::StepTimer const& timer);
 	void OnRender();
 
 	void Add(std::wstring const& name, std::shared_ptr<IScene> scene);

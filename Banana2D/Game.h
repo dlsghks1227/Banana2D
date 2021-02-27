@@ -7,6 +7,9 @@
 
 #include "InputManager.h"
 
+#include "SceneStateMachine.h"
+#include "MainScene.h"
+
 class Game final : public DX::IDeviceNotify
 {
 public:
@@ -28,25 +31,24 @@ public:
 	void OnDeviceLost() override;
 	void OnDeviceRestored() override;
 
-	// Message
-	void OnActivated();
-	void OnDeactivated();
-	void OnSuspending();
-	void OnResuming();
-
 	void OnWindowMoved();
 	void OnWindowSizeChanged(int width, int height);
 
 	void GetDefaultSize(int& width, int& height) const noexcept;
 
 private:
-	void Update(DX::StepTimer const& timer);
-	void Render();
+	void Update(DX::StepTimer const& timer);		// 오브젝트 움직임 및 애니메이션 업데이트
+	void LateUpdate(DX::StepTimer const& timer);	// 충돌 처리 및 오브젝트 위치가 업데이트 되고나서 해야할 로직들
+	void Render();									// 렌더링
 
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
 
 	DX::StepTimer		m_timer;
+
+	// Scene
+	SceneStateMachine					m_sceneStateMachine;
+	std::shared_ptr<MainScene>			m_mainScene;
 
 	std::shared_ptr<DX::Texture>		m_texture1;
 	std::shared_ptr<DX::Texture>		m_texture2;

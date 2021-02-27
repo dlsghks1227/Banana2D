@@ -27,6 +27,13 @@ void Game::Initialize(HWND window, int width, int height)
 
 	m_text = std::make_shared<DX::Text>();
 	m_text->Initialize();
+
+	m_mainScene = std::make_shared<MainScene>();
+
+	// ----- Scene -----
+	m_sceneStateMachine.Add(L"main", m_mainScene);
+	m_sceneStateMachine.SwitchTo(L"main");
+	// -----------------
 }
 
 void Game::Tick()
@@ -34,6 +41,7 @@ void Game::Tick()
 	m_timer.Tick([&]()
 		{
 			Update(m_timer);
+			LateUpdate(m_timer);
 		});
 
 	Render();
@@ -45,38 +53,6 @@ void Game::OnDeviceLost()
 
 void Game::OnDeviceRestored()
 {
-}
-
-void Game::OnActivated()
-{
-#ifdef _DEBUG
-	std::wcout << "OnActivated()\n";
-#endif
-}
-
-void Game::OnDeactivated()
-{
-#ifdef _DEBUG
-	std::wcout << "OnDeactivated()\n";
-#endif
-
-}
-
-void Game::OnSuspending()
-{
-#ifdef _DEBUG
-	std::wcout << "OnSuspending()\n";
-#endif
-
-}
-
-void Game::OnResuming()
-{
-#ifdef _DEBUG
-	std::wcout << "OnResuming()\n";
-#endif
-
-	m_timer.ResetElapsedTime();
 }
 
 void Game::Update(DX::StepTimer const& timer)
@@ -92,6 +68,17 @@ void Game::Update(DX::StepTimer const& timer)
 	if (g_inputManager->GetKeyPush(DIK_UP))		temp = D2D1::Point2F(temp.x + 0.0f, temp.y - 1.0f);
 	if (g_inputManager->GetKeyPush(DIK_DOWN))	temp = D2D1::Point2F(temp.x + 0.0f, temp.y + 1.0f);
 	m_CameraPos = D2D1::Point2F(m_CameraPos.x + temp.x, m_CameraPos.y + temp.y);
+
+	m_sceneStateMachine.OnUpdate(timer);
+}
+
+void Game::LateUpdate(DX::StepTimer const& timer)
+{
+	float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
+
+	auto context = g_deviceResources->GetD2DDeviceContext();
+
+	m_sceneStateMachine.OnLateUpdate(timer);
 }
 
 void Game::Render()
@@ -136,8 +123,7 @@ void Game::Render()
 			(y % 50 == 0) ? 1.0f : 0.5f
 		);
 	}
-#endif
-#ifdef _DEBUG
+
 	context->DrawLine(D2D1::Point2(-10.0f, 0.0f), D2D1::Point2(10.0f, 0.0f), m_gridColor.Get(), 2.0f);
 	context->DrawLine(D2D1::Point2(0.0f, -10.0f), D2D1::Point2(0.0f, 10.0f), m_gridColor.Get(), 2.0f);
 #endif
@@ -152,6 +138,8 @@ void Game::Render()
 	m_text->Draw(L"Text", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f));
 	m_text->Draw(L"Banana", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f));
 	m_text->Draw(L"Asdasdas", D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), D2D1::SizeF(1.0f, 1.0f));
+
+	m_sceneStateMachine.OnRender();
 
 	DX::ThrowIfFailed(context->EndDraw());
 

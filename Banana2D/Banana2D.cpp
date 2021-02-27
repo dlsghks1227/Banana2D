@@ -170,44 +170,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			game->OnWindowMoved();
 		}
 		break;
-
-	case WM_ACTIVATEAPP:
-		if (game)
-		{
-			if (wParam)
-			{
-				game->OnActivated();
-			}
-			else
-			{
-				game->OnDeactivated();
-			}
-		}
-		break;
-
 	case WM_SIZE:
-		if (wParam == SIZE_MINIMIZED)
-		{
-			if (!s_minimized)
-			{
-				s_minimized = true;
-				if (!s_in_suspend && game)
-				{
-					game->OnSuspending();
-				}
-				s_in_suspend = true;
-			}
-		}
-		else if (s_minimized)
-		{
-			s_minimized = false;
-			if (s_in_suspend && game)
-			{
-				game->OnResuming();
-			}
-			s_in_suspend = false;
-		}
-		else if (!s_in_sizemove && game)
+		if (s_in_sizemove == false && game)
 		{
 			game->OnWindowSizeChanged(LOWORD(lParam), HIWORD(lParam));
 		}

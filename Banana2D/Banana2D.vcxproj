@@ -149,8 +149,9 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="IResource.h" />
     <ClInclude Include="IScene.h" />
+    <ClInclude Include="MainScene.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SceneStateMachine.h" />
     <ClInclude Include="StepTimer.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Text.h" />
@@ -162,7 +163,8 @@
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="MainScene.cpp" />
+    <ClCompile Include="SceneStateMachine.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>

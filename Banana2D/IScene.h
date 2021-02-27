@@ -7,5 +7,7 @@ __interface IScene
 	void OnExitScene();
 
 	void OnUpdate(DX::StepTimer const& timer);
+	void OnLateUpdate(DX::StepTimer const& timer);
+
 	void OnRender();
 };
